@@ -7,11 +7,12 @@ import os
 import asyncio
 from cerebras.cloud.sdk import AsyncCerebras
 import pystray
+from PIL import Image # Added import
 import logging
 import sys
 
 # Set up basic console logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Define initial constants
 DEFAULT_HOTKEY = "win+y"
@@ -32,9 +33,8 @@ def update_selected_model(model_name: str, icon):
 
 def on_exit_clicked(icon, item):
     """Handles the Exit menu item click."""
-    logging.info("Exit option clicked. Shutting down.")
+    logging.info("Exit option clicked. Stopping systray icon...")
     icon.stop()
-    sys.exit(0)
 
 def create_systray_menu(icon) -> pystray.Menu:
     """Creates the systray menu with dynamic model entries."""
@@ -57,11 +57,16 @@ def create_systray_menu(icon) -> pystray.Menu:
     
     return pystray.Menu(*menu_items)
 
+def create_image():
+    # Create a 64x64 black square icon as a placeholder
+    image = Image.new('RGB', (64, 64), color='black')
+    return image
+
 def start_systray():
     """Initializes and runs the systray icon."""
     logging.info("Initializing Systray icon...")
     # Create the icon object first. pystray might use a default icon if no image is specified.
-    icon = pystray.Icon("HAT-AU", title="Hotkey Text Augmentation Utility")
+    icon = pystray.Icon("HAT-AU", create_image(), title="Hotkey Text Augmentation Utility")
     
     # Create the menu, passing the icon object to it
     menu = create_systray_menu(icon)
@@ -85,7 +90,7 @@ def get_selected_text() -> str | None:
         
         pyautogui.hotkey('ctrl', 'c')
         logging.info("Simulated Ctrl+C.")
-        time.sleep(0.1)  # Allow OS time to process the copy command
+        time.sleep(0.2)  # Changed from 0.1 to 0.2
 
         selected_text = pyperclip.paste()
 
@@ -199,6 +204,8 @@ def check_api_key():
 
 def perform_action():
     """Handles the hotkey activation, gets text, calls API, and types response."""
+    time.sleep(0.05) # Added delay to allow modifier keys to be released
+    logging.debug(f"perform_action triggered. Win key pressed: {keyboard.is_pressed('win')}, Y key pressed: {keyboard.is_pressed('y')}")
     logging.info("Hotkey activated.")
     try:
         selected_text = get_selected_text()
@@ -260,3 +267,7 @@ if __name__ == "__main__":
     # Start the systray icon. This will block the main thread and keep the script alive
     # for both systray interactions and the keyboard hotkey listener (which runs in a background thread).
     start_systray()
+
+    # After start_systray() returns (because icon.stop() was called), exit the script.
+    logging.info("Systray stopped. Exiting application.")
+    sys.exit(0)
