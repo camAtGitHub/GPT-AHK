@@ -15,7 +15,7 @@ import sys
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Define initial constants
-DEFAULT_HOTKEY = "win+y"
+DEFAULT_HOTKEY = "left windows+y"
 DEFAULT_MODELS = ["llama3.1-8b", "llama3.1-70b"]
 available_models = []
 current_model_name = "" # Global variable for the currently selected model
@@ -205,7 +205,9 @@ def check_api_key():
 def perform_action():
     """Handles the hotkey activation, gets text, calls API, and types response."""
     time.sleep(0.05) # Added delay to allow modifier keys to be released
-    logging.debug(f"perform_action triggered. Win key pressed: {keyboard.is_pressed('win')}, Y key pressed: {keyboard.is_pressed('y')}")
+    logging.debug(f"perform_action triggered. Left Windows key pressed: {keyboard.is_pressed('left windows')}, Y key pressed: {keyboard.is_pressed('y')}")
+    logging.debug("Attempting to backspace a potentially inserted 'y' character.")
+    pyautogui.press('backspace')
     logging.info("Hotkey activated.")
     try:
         selected_text = get_selected_text()
